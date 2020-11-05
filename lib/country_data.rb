@@ -57,9 +57,14 @@ class CountryData
   end
 
   def self.third_lowest_gni_per_capita_in_south_america
-    result = DatabaseConnection.query("SELECT * FROM countries WHERE continent LIKE 'South America' ORDER BY gni ASC;")
-    temp_array = []
-    temp_array.push(CountryData.new(result[2]['name'], result[2]['continent'], result[2]['population'], result[2]['density'], result[2]['gni']))
+    result = DatabaseConnection.query("WITH MyCte AS
+                                     (SELECT *, ROW_NUMBER() OVER (ORDER BY gni ASC) AS RowNum FROM countries WHERE continent LIKE 'South America')
+                                     SELECT * FROM MyCte
+                                     WHERE  RowNum = 3")
+
+    result.map{ |country| CountryData.new(country['name'], country['continent'], country['population'], country['density'], country['gni']) }
+    # temp_array = []
+    # temp_array.push(CountryData.new(result[2]['name'], result[2]['continent'], result[2]['population'], result[2]['density'], result[2]['gni']))
   end
 
   def self.all_countries_not_in_europe
